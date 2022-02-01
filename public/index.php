@@ -14,7 +14,6 @@ require '../src/InputHandler/InputItem.php';
 require '../src/InputHandler/InputHandler.php';
 include '../src/InputHandler/helper.php';
 
-
 SimpleRouter::group([], function () {
     SimpleRouter::post('/my/test/url', function(){
         echo 'Success Content' . PHP_EOL;
@@ -34,13 +33,13 @@ $request->setMethod('post');
 SimpleRouter::setRequest($request);
 
 $inputHandler = SimpleRouter::request()->getInputHandler();
-\SimpleRouter\Plugins\InputHandler\InputValidator::setTrowErrors(true);
+\SimpleRouter\Plugins\InputHandler\InputValidator::setTrowErrors(true);//default mode
 
-var_dump(inputHandler()->requireParameters(array(
+inputHandler()->requireParameters(array(
     'username' => function(InputItem $value){
         return $value->validate()->require()->minLength(2)->maxLength(20)->isString()->valid();
     }
-)));
+));
 echo 'Success Required with validation' . PHP_EOL;
 
 try{
