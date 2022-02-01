@@ -1,0 +1,30 @@
+{
+    "name": "developermarius/router-input-handler-plugin",
+    "description": "Simple, fast PHP router that is easy to get integrated and in almost any project. Heavily inspired by the Laravel router.",
+    "license": "MIT",
+    "support": {
+        "source": "https://github.com/DeveloperMarius/router-input-handler-plugin/issues"
+    },
+    "authors": [
+        {
+            "name": "Marius Karstedt",
+            "email": "info@marius-karstedt.de"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/developermarius/simple-php-router"
+        }
+    ],
+    "require": {
+        "php": ">=7.3",
+        "ext-json": "*",
+        "pecee/simple-router": "dev-inputhandler-plugin"
+    },
+    "autoload": {
+        "psr-4": {
+            "SimpleRouter\\Plugins\\": "src/"
+        }
+    }
+}
