@@ -6,6 +6,9 @@ use Pecee\Exceptions\InvalidArgumentException;
 use Pecee\Http\Input\IInputHandler;
 use Pecee\Http\Input\IInputItem;
 use Pecee\Http\Request;
+use Pecee\SimpleRouter\SimpleRouter;
+use SimpleRouter\Plugins\InputHandler\exceptions\InputNotFoundException;
+use SimpleRouter\Plugins\InputHandler\exceptions\InputValidationException;
 
 class InputHandler implements IInputHandler{
 
@@ -492,6 +495,56 @@ class InputHandler implements IInputHandler{
         $this->originalFile = $file;
 
         return $this;
+    }
+
+    /**
+     * <p>If <b>Router::validationErrors</b> this function will throw <b>InputNotFoundException</b> and <b>InputValidationException</b></p>
+     * @param string $index
+     * @param callable|null $validator
+     * @return bool
+     */
+    public function requireParameter(string $index, callable $validator = null): bool
+    {
+        if($this->exists($index)){
+            if($validator !== null){
+                if(!$validator($this->find($index))){
+                    if(InputValidator::isTrowErrors())
+                        throw new InputValidationException('Failed to validate Input: ' . $index, $index);
+                    return false;
+                }
+            }
+            return true;
+        }
+        if(InputValidator::isTrowErrors())
+            throw new InputNotFoundException('Input not found: ' . $index, $index);
+        return false;
+    }
+
+    /**
+     * <p>Parameters can be a sequential array with a list of index.</p>
+     * <p>When the Parameter ist is associative the key is an index and the value is an callable which can return true or false.</p>
+     * <p>The first parameter of the callable is an InputItem or InputFile.</p>
+     * <p>If <b>Router::validationErrors</b> this function will throw <b>InputNotFoundException</b> and <b>InputValidationException</b></p>
+     * @param array $parameters - array<string> or array<string, callable>
+     * @return array|true
+     * @throws InputNotFoundException
+     * @throws InputValidationException
+     */
+    public function requireParameters(array $parameters = array())
+    {
+        $errors = array();
+        foreach($parameters as $index => $validator){
+            if(is_numeric($index)){
+                $index = $validator;
+                $validator = null;
+            }
+            if(!$this->requireParameter($index, $validator)){
+                $errors[] = $index;
+            }
+        }
+        if(!empty($errors))
+            return $errors;
+        return true;
     }
 
 }
