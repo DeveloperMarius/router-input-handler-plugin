@@ -13,6 +13,7 @@ class InputItem implements IIInputItem, IteratorAggregate
     public $value;
 
     private $validator = null;
+    private $parser = null;
 
     /**
      * InputItem constructor.
@@ -141,35 +142,14 @@ class InputItem implements IIInputItem, IteratorAggregate
     }
 
     /**
-     * @return bool
+     * @param bool $forceNew
+     * @return InputParser
      */
-    public function parseBoolean(): bool
+    public function parse(bool $forceNew = false): InputParser
     {
-        return filter_var($this->getValue(), FILTER_VALIDATE_BOOLEAN);
-    }
-
-    /**
-     * @return int
-     */
-    public function parseInteger(): int
-    {
-        return filter_var($this->getValue(), FILTER_VALIDATE_INT);
-    }
-
-    /**
-     * @return float
-     */
-    public function parseFloat(): float
-    {
-        return filter_var($this->getValue(), FILTER_VALIDATE_FLOAT);
-    }
-
-    /**
-     * @return string
-     */
-    public function parseString(): string
-    {
-        return (string) $this->getValue();
+        if($this->parser === null || $forceNew)
+            $this->parser = new InputParser($this);
+        return $this->parser;
     }
 
     public function __toString(): string

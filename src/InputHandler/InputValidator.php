@@ -2,7 +2,6 @@
 
 namespace SimpleRouter\Plugins\InputHandler;
 
-use Pecee\SimpleRouter\SimpleRouter;
 use SimpleRouter\Plugins\InputHandler\exceptions\InputValidationException;
 
 class InputValidator
@@ -49,7 +48,7 @@ class InputValidator
      * InputValidator constructor.
      * @param InputItem $inputItem
      */
-    public function __construct($inputItem)
+    public function __construct(InputItem $inputItem)
     {
         $this->inputItem = $inputItem;
         $this->value = $inputItem->getValue();
@@ -196,6 +195,46 @@ class InputValidator
     }
 
     /**
+     * @param array $data
+     * @return bool
+     */
+    private function _in(array $data): bool
+    {
+        return in_array($this->getValue(), $data);
+    }
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function in(array $data)
+    {
+        return $this->check(function () use ($data){
+            return $this->_in($data);
+        });
+    }
+
+    /**
+     * @param string $data
+     * @return bool
+     */
+    private function _equals(string $data): bool
+    {
+        return $data === $this->getValue();
+    }
+
+    /**
+     * @param string $data
+     * @return $this
+     */
+    public function equals(string $data)
+    {
+        return $this->check(function () use ($data){
+            return $this->_equals($data);
+        });
+    }
+
+    /**
      * @param bool $forceType
      * @return true|string
      */
@@ -302,7 +341,8 @@ class InputValidator
      */
     protected function _isAssociativeArray()
     {
-        //TODO this this really an indicator? if (array() === $this->getValue()) return false;
+        //TODO this this really an indicator?
+        if (array() === $this->getValue()) return false;
         return array_keys($this->getValue()) !== range(0, count($this->getValue()) - 1) ? true : 'This Input isn\'t an associative array';
     }
 
@@ -358,13 +398,13 @@ class InputValidator
      */
     protected function _maxLength(int $length)
     {
-        if($this->_isArray() === true){
+        if($this->_isArray()){
             return sizeof($this->getValue()) <= $length ? true : 'The size of this array is bigger then the maximal length';
         }
-        if($this->_isString() === true){
+        if($this->_isString()){
             return strlen($this->getValue()) <= $length ? true : 'This string is longer then the maximal length';
         }
-        if($this->_isInteger(false) === true){
+        if($this->_isInteger(false)){
             return strlen(strval($this->getValue())) <= $length ? true : 'The string length of this integer is longer then the maximal length';
         }
         return 'Cannot check the maximal length of this Input';
@@ -387,13 +427,13 @@ class InputValidator
      */
     protected function _minLength(int $length)
     {
-        if($this->_isArray() === true){
+        if($this->_isArray()){
             return sizeof($this->getValue()) >= $length ? true : 'The size of this array is smaller then the minimal length';
         }
-        if($this->_isString() === true){
+        if($this->_isString()){
             return strlen($this->getValue()) >= $length ? true : 'This string is shorter then the minimal length';
         }
-        if($this->_isInteger(false) === true){
+        if($this->_isInteger(false)){
             return strlen(strval($this->getValue())) >= $length ? true : 'The string length of this integer is shorter then the minimal length';
         }
         return 'Cannot check the minimal length of this Input';
@@ -416,13 +456,13 @@ class InputValidator
      */
     protected function _max(int $max)
     {
-        if($this->_isArray() === true){
+        if($this->_isArray()){
             return count($this->getValue()) <= $max ? true : 'The size of this array is bigger then the maximal';
         }
-        if($this->_isInteger(false) === true){
+        if($this->_isInteger(false)){
             return intval($this->getValue()) <= $max ? true : 'This integer is bigger then the maximal';
         }
-        if($this->_isFloat(false) === true){
+        if($this->_isFloat(false)){
             return floatval($this->getValue()) <= $max ? true : 'This float is bigger then the maximal';
         }
         return 'Cannot check the maximal of this Input';
@@ -502,6 +542,24 @@ class InputValidator
         return $this->check(function (){
             return $this->_isEmail();
         });
+    }
+
+    /**
+     * @param string $pattern
+     * @return $this
+     */
+    public function isGermanPhone(string $pattern = '/^(1[567]\d)[ ]?(\d\d\d\d\d\d\d\d?)$/'): self{
+        return $this->check(function () use ($pattern){
+            return $this->_isGermanPhone($pattern);
+        });
+    }
+
+    /**
+     * @param string $pattern
+     * @return bool
+     */
+    private function _isGermanPhone(string $pattern): bool{
+        return preg_match($pattern, $this->getValue());
     }
 
     /**
