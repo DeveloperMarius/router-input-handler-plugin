@@ -33,6 +33,10 @@ class InputValidator
      */
     private $value;
     /**
+     * @var bool $canBeNull
+     */
+    private $canBeNull = false;
+    /**
      * @var bool $valid
      */
     private $valid = true;
@@ -135,6 +139,22 @@ class InputValidator
         return $this->check(function (){
             return $this->_isNull();
         });
+    }
+
+    /**
+     * @return static
+     */
+    public function canBeNull(): self
+    {
+        $this->canBeNull = true;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function isCanBeNull(): bool{
+        return $this->canBeNull;
     }
 
     /**
@@ -627,6 +647,8 @@ class InputValidator
      */
     protected function check(callable $function): self
     {
+        if($this->getValue() === null && $this->isCanBeNull())
+            return $this;
         $callback = $function();
         if($callback !== true){
             $this->valid = false;

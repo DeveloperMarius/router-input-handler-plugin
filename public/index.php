@@ -14,16 +14,17 @@ require '../src/InputHandler/InputItem.php';
 require '../src/InputHandler/InputHandler.php';
 include '../src/InputHandler/helper.php';
 
-SimpleRouter::group([], function () {
+SimpleRouter::group(['middleware' => TestMiddleware::class], function () {
     SimpleRouter::post('/my/test/url', function(){
         echo 'Success Content' . PHP_EOL;
-    }, ['middleware' => TestMiddleware::class]);
+    });
 });
 
 global $_POST;
 $_POST = [
     'username' => 'root',
-    'password' => 'admin'
+    'password' => 'admin',
+    'middleName' => null
 ];
 
 $request = new \Pecee\Http\Request();
@@ -38,6 +39,9 @@ $inputHandler = SimpleRouter::request()->getInputHandler();
 inputHandler()->requireParameters(array(
     'username' => function(InputItem $value){
         return $value->validate()->require()->minLength(2)->maxLength(20)->isString()->valid();
+    },
+    'middleName' => function(InputItem $value){
+        return $value->validate()->canBeNull()->minLength(2)->maxLength(20)->isString()->valid();
     }
 ));
 echo 'Success Required with validation' . PHP_EOL;
@@ -50,6 +54,16 @@ try{
     ));
 }catch(InputValidationException $e){
     echo 'Success Input Validation Error' . PHP_EOL;
+}
+
+try{
+    inputHandler()->requireParameters(array(
+        'middleName' => function(InputItem $value){
+            return $value->validate()->require()->minLength(2)->maxLength(20)->isString()->valid();
+        }
+    ));
+}catch(InputValidationException $e){
+    echo 'Success Input Validation Error 2' . PHP_EOL;
 }
 
 try{

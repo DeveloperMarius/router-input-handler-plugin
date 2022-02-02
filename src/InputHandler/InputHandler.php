@@ -505,19 +505,23 @@ class InputHandler implements IInputHandler{
      */
     public function requireParameter(string $index, callable $validator = null): bool
     {
-        if($this->exists($index)){
-            if($validator !== null){
-                if(!$validator($this->find($index))){
-                    if(InputValidator::isTrowErrors())
-                        throw new InputValidationException('Failed to validate Input: ' . $index, $index);
-                    return false;
-                }
+        if($validator !== null){
+            $value = $this->find($index);
+            if(!$validator($value)){
+                if(InputValidator::isTrowErrors())
+                    throw new InputValidationException('Failed to validate Input: ' . $index, $index);
+                return false;
             }
             return true;
+        }else{
+            if($this->exists($index)){
+                return true;
+            }else{
+                if(InputValidator::isTrowErrors())
+                    throw new InputNotFoundException('Input not found: ' . $index, $index);
+                return false;
+            }
         }
-        if(InputValidator::isTrowErrors())
-            throw new InputNotFoundException('Input not found: ' . $index, $index);
-        return false;
     }
 
     /**
