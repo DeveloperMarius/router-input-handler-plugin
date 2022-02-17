@@ -3,10 +3,7 @@
 use Pecee\Http\Input\InputValidator;
 use Pecee\Http\Input\InputValidatorItem;
 use Pecee\SimpleRouter\SimpleRouter;
-use SimpleRouter\Plugins\InputHandler\exceptions\InputNotFoundException;
-use SimpleRouter\Plugins\InputHandler\exceptions\InputValidationException;
 use SimpleRouter\Plugins\InputHandler\InputHandler;
-use SimpleRouter\Plugins\InputHandler\InputItem;
 use SimpleRouter\Plugins\InputHandler\TestMiddleware;
 
 require '../vendor/autoload.php';
@@ -36,7 +33,6 @@ $request->setMethod('post');
 SimpleRouter::setRequest($request);
 
 $inputHandler = SimpleRouter::request()->getInputHandler();
-\SimpleRouter\Plugins\InputHandler\InputValidator::setTrowErrors(true);//default mode
 
 $request->validate(
     InputValidator::make()
@@ -44,34 +40,6 @@ $request->validate(
         ->add(InputValidatorItem::make('password')->isString()->max(20))
 );
 echo 'Success Required with validation' . PHP_EOL;
-
-try{
-    inputHandler()->requireParameters(array(
-        'username' => function(InputItem $value){
-            return $value->validate()->require()->minLength(6)->maxLength(20)->isString()->valid();
-        }
-    ));
-}catch(InputValidationException $e){
-    echo 'Success Input Validation Error' . PHP_EOL;
-}
-
-try{
-    inputHandler()->requireParameters(array(
-        'middleName' => function(InputItem $value){
-            return $value->validate()->require()->minLength(2)->maxLength(20)->isString()->valid();
-        }
-    ));
-}catch(InputValidationException $e){
-    echo 'Success Input Validation Error 2' . PHP_EOL;
-}
-
-try{
-    inputHandler()->requireParameters(array(
-        'permission'
-    ));
-}catch(InputNotFoundException $e){
-    echo 'Success Input Not Found' . PHP_EOL;
-}
 
 var_dump(inputHandler()->post('username')->getValue());
 var_dump(inputHandler()->value('username'));
