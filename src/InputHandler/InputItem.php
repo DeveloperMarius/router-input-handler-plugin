@@ -5,6 +5,7 @@ namespace SimpleRouter\Plugins\InputHandler;
 use ArrayIterator;
 use IteratorAggregate;
 use Pecee\Http\Input\IInputItem;
+use Pecee\Http\Input\InputValidator;
 
 class InputItem implements IIInputItem, IteratorAggregate
 {
@@ -90,7 +91,7 @@ class InputItem implements IIInputItem, IteratorAggregate
     /**
      * @return InputItem[]
      */
-    public function getInputItems()
+    public function getInputItems(): array
     {
         if(is_array($this->value)){
             return $this->value;
@@ -128,17 +129,6 @@ class InputItem implements IIInputItem, IteratorAggregate
         $this->value = $value;
 
         return $this;
-    }
-
-    /**
-     * @param bool $forceNew
-     * @return InputValidator
-     */
-    public function validate(bool $forceNew = false): InputValidator
-    {
-        if($this->validator === null || $forceNew)
-            $this->validator = new InputValidator($this);
-        return $this->validator;
     }
 
     /**

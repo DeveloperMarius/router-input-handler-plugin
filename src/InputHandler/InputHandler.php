@@ -6,9 +6,6 @@ use Pecee\Exceptions\InvalidArgumentException;
 use Pecee\Http\Input\IInputHandler;
 use Pecee\Http\Input\IInputItem;
 use Pecee\Http\Request;
-use Pecee\SimpleRouter\SimpleRouter;
-use SimpleRouter\Plugins\InputHandler\exceptions\InputNotFoundException;
-use SimpleRouter\Plugins\InputHandler\exceptions\InputValidationException;
 
 class InputHandler implements IInputHandler{
 
@@ -132,7 +129,7 @@ class InputHandler implements IInputHandler{
         foreach ($files as $key => $value) {
 
             // Parse multi dept file array
-            if(isset($value['name']) === false && \is_array($value) === true) {
+            if(isset($value['name']) === false && is_array($value)) {
                 $list[$key] = (new InputFile($key))->setValue($this->parseFiles($value, $key));
                 continue;
             }
@@ -260,7 +257,7 @@ class InputHandler implements IInputHandler{
             $methods = is_array($methods[0]) ? array_values($methods[0]) : $methods;
         }
 
-        if (count($methods) === 0 || \in_array(Request::REQUEST_TYPE_GET, $methods, true) === true) {
+        if (count($methods) === 0 || in_array(Request::REQUEST_TYPE_GET, $methods, true) === true) {
             $element = $this->get($index);
         }
 
@@ -268,7 +265,7 @@ class InputHandler implements IInputHandler{
             $element = $this->data($index);
         }
 
-        if (($element->getValue() === null && count($methods) === 0) || (count($methods) !== 0 && \in_array('file', $methods, true) === true)) {
+        if (($element->getValue() === null && count($methods) === 0) || (count($methods) !== 0 && in_array('file', $methods, true) === true)) {
             $element = $this->file($index);
             if($element->getValue() === null){
                 $element = new InputItem($index, null);
@@ -295,7 +292,7 @@ class InputHandler implements IInputHandler{
         }
 
         /* Handle collection */
-        if (\is_array($input) === true && count($input) === 0) {
+        if (is_array($input) && count($input) === 0) {
             return $defaultValue;
         }
 
@@ -321,7 +318,7 @@ class InputHandler implements IInputHandler{
      * @param mixed $defaultValue
      * @return InputItem
      */
-    public function post(string $index, $defaultValue = null): IInputItem{
+    public function post(string $index, $defaultValue = null): InputItem{
         return $this->data($index, $defaultValue);
     }
 
@@ -332,7 +329,7 @@ class InputHandler implements IInputHandler{
      * @param mixed $defaultValue
      * @return InputItem
      */
-    public function data(string $index, $defaultValue = null): InputItem{
+    public function data(string $index, $defaultValue = null): IInputItem{
         if(!isset($this->data[$index]))
             return new InputItem($index, $defaultValue);
         return $this->data[$index];
@@ -498,57 +495,37 @@ class InputHandler implements IInputHandler{
     }
 
     /**
-     * <p>If <b>Router::validationErrors</b> this function will throw <b>InputNotFoundException</b> and <b>InputValidationException</b></p>
      * @param string $index
      * @param callable|null $validator
-     * @return bool
+     * @return mixed
      */
-    public function requireParameter(string $index, callable $validator = null): bool
+    public function parseParameter(string $index, callable $validator = null)
     {
+        $value = $this->find($index);
         if($validator !== null){
-            $value = $this->find($index);
-            if(!$validator($value)){
-                if(InputValidator::isTrowErrors())
-                    throw new InputValidationException('Failed to validate Input: ' . $index, $index);
-                return false;
-            }
-            return true;
-        }else{
-            if($this->exists($index)){
-                return true;
-            }else{
-                if(InputValidator::isTrowErrors())
-                    throw new InputNotFoundException('Input not found: ' . $index, $index);
-                return false;
-            }
+            return $validator($value);
         }
+        return $value;
     }
 
     /**
      * <p>Parameters can be a sequential array with a list of index.</p>
-     * <p>When the Parameter ist is associative the key is an index and the value is an callable which can return true or false.</p>
+     * <p>When the Parameter is associative, the key is an index and the value is a callable which have to return the processed value.</p>
      * <p>The first parameter of the callable is an InputItem or InputFile.</p>
-     * <p>If <b>Router::validationErrors</b> this function will throw <b>InputNotFoundException</b> and <b>InputValidationException</b></p>
-     * @param array $parameters - array<string> or array<string, callable>
+     * @param array<string>|array<string, callable> $parameters
      * @return array|true
-     * @throws InputNotFoundException
-     * @throws InputValidationException
      */
-    public function requireParameters(array $parameters = array())
+    public function parseParameters(array $parameters = array()): array
     {
-        $errors = array();
+        $values = array();
         foreach($parameters as $index => $validator){
             if(is_numeric($index)){
                 $index = $validator;
                 $validator = null;
             }
-            if(!$this->requireParameter($index, $validator)){
-                $errors[] = $index;
-            }
+            $values[] = $this->parseParameter($index, $validator);
         }
-        if(!empty($errors))
-            return $errors;
-        return true;
+        return $values;
     }
 
 }

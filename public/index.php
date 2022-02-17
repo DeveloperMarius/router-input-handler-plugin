@@ -1,5 +1,7 @@
 <?php
 
+use Pecee\Http\Input\InputValidator;
+use Pecee\Http\Input\InputValidatorItem;
 use Pecee\SimpleRouter\SimpleRouter;
 use SimpleRouter\Plugins\InputHandler\exceptions\InputNotFoundException;
 use SimpleRouter\Plugins\InputHandler\exceptions\InputValidationException;
@@ -36,14 +38,11 @@ SimpleRouter::setRequest($request);
 $inputHandler = SimpleRouter::request()->getInputHandler();
 \SimpleRouter\Plugins\InputHandler\InputValidator::setTrowErrors(true);//default mode
 
-inputHandler()->requireParameters(array(
-    'username' => function(InputItem $value){
-        return $value->validate()->require()->minLength(2)->maxLength(20)->isString()->valid();
-    },
-    'middleName' => function(InputItem $value){
-        return $value->validate()->canBeNull()->minLength(2)->maxLength(20)->isString()->valid();
-    }
-));
+$request->validate(
+    InputValidator::make()
+        ->add(InputValidatorItem::make('username')->isString()->max(50))
+        ->add(InputValidatorItem::make('password')->isString()->max(20))
+);
 echo 'Success Required with validation' . PHP_EOL;
 
 try{
